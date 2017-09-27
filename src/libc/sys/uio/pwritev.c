@@ -18,6 +18,14 @@ ssize_t pwritev(int fildes, const struct iovec *iov, int iovcnt, off_t offset) {
   cloudabi_errno_t error = cloudabi_sys_fd_pwrite(
       fildes, (const cloudabi_ciovec_t *)iov, iovcnt, offset, &bytes_written);
   if (error != 0) {
+    cloudabi_fdstat_t fds;
+    if (error == ENOTCAPABLE && cloudabi_sys_fd_stat_get(fildes, &fds) == 0) {
+      // Determine why we got ENOTCAPABLE.
+      if ((fds.fs_rights_base & CLOUDABI_RIGHT_FD_WRITE) == 0)
+        error = EBADF;
+      else
+        error = ESPIPE;
+    }
     errno = error;
     return -1;
   }
