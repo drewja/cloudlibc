@@ -12,8 +12,8 @@
 #include <errno.h>
 #include <stdint.h>
 
-static_assert(MSG_PEEK == CLOUDABI_SOCK_RECV_PEEK, "Value mismatch");
-static_assert(MSG_WAITALL == CLOUDABI_SOCK_RECV_WAITALL, "Value mismatch");
+static_assert(MSG_PEEK == CLOUDABI_READ_OPTIONS_PEEK, "Value mismatch");
+static_assert(MSG_WAITALL == CLOUDABI_READ_OPTIONS_WAITALL, "Value mismatch");
 
 static_assert(MSG_CTRUNC == CLOUDABI_SOCK_RECV_FDS_TRUNCATED, "Value mismatch");
 static_assert(MSG_TRUNC == CLOUDABI_SOCK_RECV_DATA_TRUNCATED, "Value mismatch");

@@ -8,9 +8,9 @@
 #include <errno.h>
 #include <unistd.h>
 
-static_assert(SEEK_CUR == CLOUDABI_WHENCE_CUR, "Value mismatch");
-static_assert(SEEK_END == CLOUDABI_WHENCE_END, "Value mismatch");
-static_assert(SEEK_SET == CLOUDABI_WHENCE_SET, "Value mismatch");
+static_assert(SEEK_CUR == CLOUDABI_SEEK_WHENCE_CUR, "Value mismatch");
+static_assert(SEEK_END == CLOUDABI_SEEK_WHENCE_END, "Value mismatch");
+static_assert(SEEK_SET == CLOUDABI_SEEK_WHENCE_SET, "Value mismatch");
 
 off_t lseek(int fildes, off_t offset, int whence) {
   cloudabi_filesize_t new_offset;

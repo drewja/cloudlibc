@@ -12,8 +12,8 @@
 #include <errno.h>
 #include <stdint.h>
 
-static_assert(MSG_PEEK == CLOUDABI_SOCK_RECV_PEEK, "Value mismatch");
-static_assert(MSG_WAITALL == CLOUDABI_SOCK_RECV_WAITALL, "Value mismatch");
+static_assert(MSG_PEEK == CLOUDABI_READ_OPTIONS_PEEK, "Value mismatch");
+static_assert(MSG_WAITALL == CLOUDABI_READ_OPTIONS_WAITALL, "Value mismatch");
 
 ssize_t recv(int socket, void *restrict buffer, size_t length, int flags) {
   // Validate flags.
