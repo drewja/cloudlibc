@@ -28,7 +28,7 @@ static_assert(sizeof(struct iovec) == sizeof(cloudabi_iovec_t),
               "Size mismatch");
 
 ssize_t readv(int fildes, const struct iovec *iov, int iovcnt) {
-  if (iovcnt < 0) {
+  if (iovcnt <= 0) {
     errno = EINVAL;
     return -1;
   }

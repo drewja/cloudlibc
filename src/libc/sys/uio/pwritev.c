@@ -12,7 +12,7 @@
 #include <errno.h>
 
 ssize_t pwritev(int fildes, const struct iovec *iov, int iovcnt, off_t offset) {
-  if (iovcnt < 0 || offset < 0) {
+  if (iovcnt <= 0 || offset < 0) {
     errno = EINVAL;
     return -1;
   }

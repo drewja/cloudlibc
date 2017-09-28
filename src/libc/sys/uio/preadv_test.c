@@ -1,13 +1,21 @@
-// Copyright (c) 2015 Nuxi, https://nuxi.nl/
+// Copyright (c) 2015-2017 Nuxi, https://nuxi.nl/
 //
 // This file is distributed under a 2-clause BSD license.
 // See the LICENSE file for details.
 
 #include <sys/uio.h>
 
+#include <errno.h>
 #include <fcntl.h>
 #include <testing.h>
 #include <unistd.h>
+
+TEST(preadv, einval) {
+  ASSERT_EQ(-1, preadv(fd_tmp, NULL, -1, 123));
+  ASSERT_EQ(EINVAL, errno);
+  ASSERT_EQ(-1, preadv(fd_tmp, NULL, -1, 123));
+  ASSERT_EQ(EINVAL, errno);
+}
 
 TEST(preadv, example) {
   // Prepare example file.
