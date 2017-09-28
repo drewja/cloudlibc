@@ -146,10 +146,7 @@ __END_DECLS
 static __inline ssize_t __recv(int __socket, void *__restrict __buffer,
                                size_t __length, int __flags) {
   struct iovec __iov = {.iov_base = __buffer, .iov_len = __length};
-  struct msghdr __msg = {
-      .msg_iov = &__iov,
-      .msg_iovlen = 1,
-  };
+  struct msghdr __msg = {.msg_iov = &__iov, .msg_iovlen = 1};
   return recvmsg(__socket, &__msg, __flags);
 }
 #define recv(socket, buffer, length, flags) \
@@ -158,10 +155,7 @@ static __inline ssize_t __recv(int __socket, void *__restrict __buffer,
 static __inline ssize_t __send(int __socket, const void *__buffer,
                                size_t __length, int __flags) {
   struct iovec __iov = {.iov_base = (void *)__buffer, .iov_len = __length};
-  struct msghdr __msg = {
-      .msg_iov = &__iov,
-      .msg_iovlen = 1,
-  };
+  struct msghdr __msg = {.msg_iov = &__iov, .msg_iovlen = 1};
   return sendmsg(__socket, &__msg, __flags);
 }
 #define send(socket, buffer, length, flags) \
