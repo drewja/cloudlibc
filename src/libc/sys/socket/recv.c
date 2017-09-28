@@ -10,6 +10,6 @@
 #endif
 
 // clang-format off
-ssize_t (recv)(int socket, void *restrict buffer, size_t length, int flags) {
+ssize_t (recv)(int socket, void *buffer, size_t length, int flags) {
   return recv(socket, buffer, length, flags);
 }
