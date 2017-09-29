@@ -13,7 +13,7 @@
 TEST(pwritev, einval) {
   ASSERT_EQ(-1, pwritev(fd_tmp, NULL, -1, 123));
   ASSERT_EQ(EINVAL, errno);
-  ASSERT_EQ(-1, pwritev(fd_tmp, NULL, -1, 123));
+  ASSERT_EQ(-1, pwritev(fd_tmp, NULL, 0, 123));
   ASSERT_EQ(EINVAL, errno);
 }
 
