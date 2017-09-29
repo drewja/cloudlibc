@@ -1,9 +1,10 @@
-// Copyright (c) 2015-2016 Nuxi, https://nuxi.nl/
+// Copyright (c) 2015-2017 Nuxi, https://nuxi.nl/
 //
 // This file is distributed under a 2-clause BSD license.
 // See the LICENSE file for details.
 
 #include <common/errno.h>
+#include <common/nonblock.h>
 
 #include <assert.h>
 #include <cloudabi_syscalls.h>
@@ -13,7 +14,6 @@
 
 static_assert(O_APPEND == CLOUDABI_FDFLAG_APPEND, "Value mismatch");
 static_assert(O_DSYNC == CLOUDABI_FDFLAG_DSYNC, "Value mismatch");
-static_assert(O_NONBLOCK == CLOUDABI_FDFLAG_NONBLOCK, "Value mismatch");
 static_assert(O_RSYNC == CLOUDABI_FDFLAG_RSYNC, "Value mismatch");
 static_assert(O_SYNC == CLOUDABI_FDFLAG_SYNC, "Value mismatch");
 
@@ -90,12 +90,30 @@ int openat(int fd, const char *path, int oflag, ...) {
       .fs_rights_base = max & fsb_cur.fs_rights_inheriting,
       .fs_rights_inheriting = fsb_cur.fs_rights_inheriting,
   };
+  // TODO(ed): vv Remove this code once operation_start() works. vv
+  if ((oflag & O_NONBLOCK) != 0)
+    fsb_new.fs_flags |= CLOUDABI_FDFLAG_NONBLOCK;
+  // TODO(ed): ^^ Remove this code once operation_start() works. ^^
   cloudabi_fd_t newfd;
   error = cloudabi_sys_file_open(lookup, path, strlen(path),
                                  (oflag >> 12) & 0xfff, &fsb_new, &newfd);
   if (error != 0) {
     errno = errno_fixup_directory(lookup.fd, error);
     return -1;
+  }
+
+  // Though O_NONBLOCK doesn't mean anything on directories or regular
+  // files, it may have an effect on named pipes. Though this
+  // environment doesn't support named pipes explicitly, at least ensure
+  // that the O_NONBLOCK flag is preserved.
+  if ((oflag & O_NONBLOCK) != 0) {
+    if (!__fd_set_nonblock(newfd)) {
+      cloudabi_sys_fd_close(newfd);
+      errno = ENOMEM;
+      return -1;
+    }
+  } else {
+    __fd_clr_nonblock(newfd);
   }
   return newfd;
 }

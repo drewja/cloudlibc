@@ -1,13 +1,16 @@
-// Copyright (c) 2015-2016 Nuxi, https://nuxi.nl/
+// Copyright (c) 2015-2017 Nuxi, https://nuxi.nl/
 //
 // This file is distributed under a 2-clause BSD license.
 // See the LICENSE file for details.
+
+#include <common/nonblock.h>
 
 #include <sys/ioctl.h>
 
 #include <cloudabi_syscalls.h>
 #include <errno.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
 int ioctl(int fildes, int request, ...) {
   switch (request) {
@@ -56,6 +59,12 @@ int ioctl(int fildes, int request, ...) {
       return 0;
     }
     case FIONBIO: {
+      va_list ap;
+      va_start(ap, request);
+      bool nonblock = *va_arg(ap, const int *) != 0;
+      va_end(ap);
+
+      // TODO(ed): vv Remove this code once operation_start() works. vv
       // Obtain the current file descriptor flags.
       cloudabi_fdstat_t fds;
       cloudabi_errno_t error = cloudabi_sys_fd_stat_get(fildes, &fds);
@@ -65,19 +74,26 @@ int ioctl(int fildes, int request, ...) {
       }
 
       // Toggle the non-blocking flag based on the argument.
-      va_list ap;
-      va_start(ap, request);
-      if (*va_arg(ap, const int *) != 0)
+      if (nonblock)
         fds.fs_flags |= CLOUDABI_FDFLAG_NONBLOCK;
       else
         fds.fs_flags &= ~CLOUDABI_FDFLAG_NONBLOCK;
-      va_end(ap);
 
       // Update the file descriptor flags.
       error = cloudabi_sys_fd_stat_put(fildes, &fds, CLOUDABI_FDSTAT_FLAGS);
       if (error != 0) {
         errno = error;
         return -1;
+      }
+      // TODO(ed): ^^ Remove this code once operation_start() works. ^^
+
+      if (nonblock) {
+        if (!__fd_set_nonblock(fildes)) {
+          errno = ENOMEM;
+          return -1;
+        }
+      } else {
+        __fd_clr_nonblock(fildes);
       }
       return 0;
     }

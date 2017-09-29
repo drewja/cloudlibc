@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2016 Nuxi, https://nuxi.nl/
+// Copyright (c) 2015-2017 Nuxi, https://nuxi.nl/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions
@@ -66,7 +66,6 @@ typedef __off_t off_t;
 // First twelve bits: flags that remain in effect after opening.
 #define O_APPEND 0x1
 #define O_DSYNC 0x2
-#define O_NONBLOCK 0x4
 #define O_RSYNC 0x8
 #define O_SYNC 0x10
 
@@ -76,12 +75,13 @@ typedef __off_t off_t;
 #define O_EXCL 0x4000
 #define O_TRUNC 0x8000
 
-// Last eight bits: flags that are handled by openat() internally.
+// Last eight bits: flags that are handled in userspace.
 #define O_NOFOLLOW 0x1000000
 #define O_EXEC 0x2000000
 #define O_RDONLY 0x4000000
 #define O_SEARCH 0x8000000
 #define O_WRONLY 0x10000000
+#define O_NONBLOCK 0x20000000
 
 // For compatibility.
 #define O_CLOEXEC 0          // Has no effect.

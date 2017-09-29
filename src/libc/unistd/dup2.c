@@ -1,7 +1,9 @@
-// Copyright (c) 2015-2016 Nuxi, https://nuxi.nl/
+// Copyright (c) 2015-2017 Nuxi, https://nuxi.nl/
 //
 // This file is distributed under a 2-clause BSD license.
 // See the LICENSE file for details.
+
+#include <common/nonblock.h>
 
 #include <cloudabi_syscalls.h>
 #include <errno.h>
@@ -12,6 +14,16 @@ int dup2(int fildes, int fildes2) {
   if (error != 0) {
     errno = error;
     return -1;
+  }
+
+  // Copy over the O_NONBLOCK flag.
+  if (__fd_is_nonblock(fildes)) {
+    if (!__fd_set_nonblock(fildes2)) {
+      errno = ENOMEM;
+      return -1;
+    }
+  } else {
+    __fd_clr_nonblock(fildes2);
   }
   return fildes2;
 }

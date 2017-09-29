@@ -1,7 +1,9 @@
-// Copyright (c) 2015-2016 Nuxi, https://nuxi.nl/
+// Copyright (c) 2015-2017 Nuxi, https://nuxi.nl/
 //
 // This file is distributed under a 2-clause BSD license.
 // See the LICENSE file for details.
+
+#include <common/nonblock.h>
 
 #include <cloudabi_syscalls.h>
 #include <errno.h>
@@ -27,6 +29,9 @@ int fcntl(int fildes, int cmd, ...) {
 
       // Roughly approximate the access mode by converting the rights.
       int oflags = fds.fs_flags;
+      // TODO(ed): vv Remove this code once operation_start() works. vv
+      oflags &= ~CLOUDABI_FDFLAG_NONBLOCK;
+      // TODO(ed): ^^ Remove this code once operation_start() works. ^^
       if ((fds.fs_rights_base &
            (CLOUDABI_RIGHT_FD_READ | CLOUDABI_RIGHT_FILE_READDIR)) != 0) {
         if ((fds.fs_rights_base & CLOUDABI_RIGHT_FD_WRITE) != 0)
@@ -40,6 +45,10 @@ int fcntl(int fildes, int cmd, ...) {
       } else {
         oflags |= O_SEARCH;
       }
+
+      // The O_NONBLOCK flag is tracked in userspace.
+      if (__fd_is_nonblock(fildes))
+        oflags |= O_NONBLOCK;
       return oflags;
     }
     case F_SETFL: {
@@ -50,11 +59,25 @@ int fcntl(int fildes, int cmd, ...) {
       va_end(ap);
 
       cloudabi_fdstat_t fds = {.fs_flags = flags & 0xfff};
+      // TODO(ed): vv Remove this code once operation_start() works. vv
+      if ((flags & O_NONBLOCK) != 0)
+        fds.fs_flags |= CLOUDABI_FDFLAG_NONBLOCK;
+      // TODO(ed): ^^ Remove this code once operation_start() works. ^^
       cloudabi_errno_t error =
           cloudabi_sys_fd_stat_put(fildes, &fds, CLOUDABI_FDSTAT_FLAGS);
       if (error != 0) {
         errno = error;
         return -1;
+      }
+
+      // Keep track of O_NONBLOCK in userspace.
+      if ((flags & O_NONBLOCK) != 0) {
+        if (!__fd_set_nonblock(fildes)) {
+          errno = ENOMEM;
+          return -1;
+        }
+      } else {
+        __fd_clr_nonblock(fildes);
       }
       return 0;
     }
