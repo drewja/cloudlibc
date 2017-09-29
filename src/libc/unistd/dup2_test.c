@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Nuxi, https://nuxi.nl/
+// Copyright (c) 2015-2017 Nuxi, https://nuxi.nl/
 //
 // This file is distributed under a 2-clause BSD license.
 // See the LICENSE file for details.
@@ -32,7 +32,7 @@ TEST_SEPARATE_PROCESS(dup2, bad) {
 
 TEST(dup2, good) {
   // Create two files for testing.
-  int fd1 = openat(fd_tmp, "file1", O_CREAT | O_EXCL | O_WRONLY);
+  int fd1 = openat(fd_tmp, "file1", O_CREAT | O_EXCL | O_NONBLOCK | O_WRONLY);
   ASSERT_LE(0, fd1);
   int fd2 = openat(fd_tmp, "file2", O_CREAT | O_EXCL | O_WRONLY);
   ASSERT_LE(0, fd2);
@@ -52,6 +52,10 @@ TEST(dup2, good) {
   ASSERT_EQ(0, fstat(fd2, &sb2));
   ASSERT_EQ(sb1.st_dev, sb2.st_dev);
   ASSERT_EQ(sb1.st_ino, sb2.st_ino);
+
+  // The O_NONBLOCK flag should be copied along.
+  ASSERT_EQ(O_NONBLOCK | O_WRONLY, fcntl(fd1, F_GETFL));
+  ASSERT_EQ(O_NONBLOCK | O_WRONLY, fcntl(fd2, F_GETFL));
 
   ASSERT_EQ(0, close(fd1));
   ASSERT_EQ(0, close(fd2));
