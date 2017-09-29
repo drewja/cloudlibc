@@ -3,6 +3,7 @@
 // This file is distributed under a 2-clause BSD license.
 // See the LICENSE file for details.
 
+#include <common/atomic_int_set.h>
 #include <common/nonblock.h>
 
 #include <stdatomic.h>
