@@ -38,6 +38,10 @@ TEST(dup2, good) {
   ASSERT_LE(0, fd2);
   ASSERT_NE(fd1, fd2);
 
+  // Some unnecessary calls to dup2().
+  ASSERT_EQ(fd1, dup2(fd1, fd1));
+  ASSERT_EQ(fd2, dup2(fd2, fd2));
+
   // Both descriptors should point to a different file.
   struct stat sb1, sb2;
   ASSERT_EQ(0, fstat(fd1, &sb1));
