@@ -17,65 +17,62 @@ ssize_t preadv(int fildes, const struct iovec *iov, int iovcnt, off_t offset) {
     return -1;
   }
 
-  cloudabi_operation_result_t result;
-  cloudabi_operation_request_t request = {
-      .type = CLOUDABI_OPERATION_TYPE_FD_READ,
-      .execution = __fd_is_nonblock(fildes)
-                       ? CLOUDABI_OPERATION_EXECUTION_SYNC_NONBLOCK
-                       : CLOUDABI_OPERATION_EXECUTION_SYNC_BLOCK,
-      .result = &result,
-      .fd_read =
-          {
-              .fd = fildes,
-              .data = (const cloudabi_iovec_t *)iov,
-              .data_len = iovcnt,
-              .whence = CLOUDABI_READWRITE_WHENCE_MANDATORY,
-              .offset = offset,
-          },
+  // Prepare set of events on which we should wait. If the file
+  // descriptor is non-blocking, add an additional zero-value clock to
+  // force poll() to return immediately.
+  cloudabi_subscription_t subscriptions[2] = {
+      {
+          .type = CLOUDABI_EVENTTYPE_FD_READ,
+          .fd_read =
+              {
+                  .fd = fildes,
+                  .data = (const cloudabi_iovec_t *)iov,
+                  .data_len = iovcnt,
+                  .whence = CLOUDABI_READWRITE_WHENCE_MANDATORY,
+                  .offset = offset,
+              },
+      },
+      {
+          .type = CLOUDABI_EVENTTYPE_CLOCK,
+          .clock.clock_id = CLOUDABI_CLOCK_MONOTONIC,
+      },
   };
-  cloudabi_errno_t error = cloudabi_sys_operation_start(&request, 1);
+
+  // Wait for the read to complete.
+  size_t triggered;
+  cloudabi_event_t events[__arraycount(subscriptions)];
+  cloudabi_errno_t error = cloudabi_sys_poll(
+      subscriptions, events, __fd_is_nonblock(fildes) ? 2 : 1, &triggered);
   if (error != 0) {
-    // TODO(ed): vv Remove this code once operation_start() works. vv
-    if (error == ENOSYS) {
-      size_t bytes_read;
-      error = cloudabi_sys_fd_pread(fildes, (const cloudabi_iovec_t *)iov,
-                                    iovcnt, offset, &bytes_read);
-      if (error != 0) {
-        cloudabi_fdstat_t fds;
-        if (error == ENOTCAPABLE &&
-            cloudabi_sys_fd_stat_get(fildes, &fds) == 0) {
-          // Determine why we got ENOTCAPABLE.
-          if ((fds.fs_rights_base & CLOUDABI_RIGHT_FD_READ) == 0)
-            error = EBADF;
-          else
-            error = ESPIPE;
-        }
-        errno = error;
-        return -1;
-      }
-      return bytes_read;
-    }
-    // TODO(ed): ^^ Remove this code once operation_start() works. ^^
     errno = error;
     return -1;
   }
-  if (result.error != 0) {
-    cloudabi_fdstat_t fds;
-    if (result.error == ENOTCAPABLE &&
-        cloudabi_sys_fd_stat_get(fildes, &fds) == 0) {
-      // Determine why we got ENOTCAPABLE.
-      if ((fds.fs_rights_base & CLOUDABI_RIGHT_FD_READ) == 0)
-        result.error = EBADF;
-      else
-        result.error = ESPIPE;
+
+  for (size_t i = 0; i < triggered; ++i) {
+    cloudabi_event_t *ev = &events[i];
+    if (ev->type == CLOUDABI_EVENTTYPE_FD_READ) {
+      if (ev->error != 0) {
+        cloudabi_fdstat_t fds;
+        if (ev->error == ENOTCAPABLE &&
+            cloudabi_sys_fd_stat_get(fildes, &fds) == 0) {
+          // Determine why we got ENOTCAPABLE.
+          if ((fds.fs_rights_base & CLOUDABI_RIGHT_POLL_FD_READ) == 0)
+            ev->error = EBADF;
+          else
+            ev->error = ESPIPE;
+        }
+        errno = ev->error;
+        return -1;
+      }
+
+      // Don't report truncation of read data.
+      size_t nbyte = 0;
+      for (int j = 0; j < iovcnt; ++j)
+        nbyte += iov[j].iov_len;
+      return ev->fd_read.datalen < nbyte ? ev->fd_read.datalen : nbyte;
     }
-    errno = result.error;
-    return -1;
   }
 
-  // Don't report truncation of read data.
-  size_t nbyte = 0;
-  for (int i = 0; i < iovcnt; ++i)
-    nbyte += iov[i].iov_len;
-  return result.fd_read.datalen < nbyte ? result.fd_read.datalen : nbyte;
+  errno = EAGAIN;
+  return -1;
 }

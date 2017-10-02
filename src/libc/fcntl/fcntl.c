@@ -29,16 +29,13 @@ int fcntl(int fildes, int cmd, ...) {
 
       // Roughly approximate the access mode by converting the rights.
       int oflags = fds.fs_flags;
-      // TODO(ed): vv Remove this code once operation_start() works. vv
-      oflags &= ~CLOUDABI_FDFLAG_NONBLOCK;
-      // TODO(ed): ^^ Remove this code once operation_start() works. ^^
       if ((fds.fs_rights_base &
-           (CLOUDABI_RIGHT_FD_READ | CLOUDABI_RIGHT_FILE_READDIR)) != 0) {
-        if ((fds.fs_rights_base & CLOUDABI_RIGHT_FD_WRITE) != 0)
+           (CLOUDABI_RIGHT_POLL_FD_READ | CLOUDABI_RIGHT_FILE_READDIR)) != 0) {
+        if ((fds.fs_rights_base & CLOUDABI_RIGHT_POLL_FD_WRITE) != 0)
           oflags |= O_RDWR;
         else
           oflags |= O_RDONLY;
-      } else if ((fds.fs_rights_base & CLOUDABI_RIGHT_FD_WRITE) != 0) {
+      } else if ((fds.fs_rights_base & CLOUDABI_RIGHT_POLL_FD_WRITE) != 0) {
         oflags |= O_WRONLY;
       } else if ((fds.fs_rights_base & CLOUDABI_RIGHT_PROC_EXEC) != 0) {
         oflags |= O_EXEC;
@@ -59,10 +56,6 @@ int fcntl(int fildes, int cmd, ...) {
       va_end(ap);
 
       cloudabi_fdstat_t fds = {.fs_flags = flags & 0xfff};
-      // TODO(ed): vv Remove this code once operation_start() works. vv
-      if ((flags & O_NONBLOCK) != 0)
-        fds.fs_flags |= CLOUDABI_FDFLAG_NONBLOCK;
-      // TODO(ed): ^^ Remove this code once operation_start() works. ^^
       cloudabi_errno_t error =
           cloudabi_sys_fd_stat_put(fildes, &fds, CLOUDABI_FDSTAT_FLAGS);
       if (error != 0) {

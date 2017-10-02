@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2016 Nuxi, https://nuxi.nl/
+// Copyright (c) 2015-2017 Nuxi, https://nuxi.nl/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions
@@ -24,6 +24,8 @@
 // <signal.h> - signals
 //
 // Extensions:
+// - SIGEV_QUEUE and struct sigevent::sigev_notify_queue:
+//   Event queue as an alternative to signal delivery, polling, etc.
 // - NSIG:
 //   Present on most operating systems.
 // - psignal_l():
@@ -41,6 +43,7 @@
 #define _SIGNAL_H_
 
 #include <_/limits.h>
+#include <_/struct/sigevent.h>  // IWYU pragma: export
 #include <_/struct/timespec.h>  // IWYU pragma: export
 #include <_/types.h>
 
@@ -60,6 +63,8 @@ typedef __sigset_t sigset_t;
 typedef __size_t size_t;
 #define _SIZE_T_DECLARED
 #endif
+
+#define SIGEV_QUEUE 1
 
 // Signals.
 #define SIGABRT 1     // Process abort signal.

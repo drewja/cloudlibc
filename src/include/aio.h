@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Nuxi, https://nuxi.nl/
+// Copyright (c) 2015-2017 Nuxi, https://nuxi.nl/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions
@@ -24,15 +24,13 @@
 // <aio.h> - asynchronous input and output
 //
 // Features missing:
-// - struct aiocb::aio_sigevent and lio_listio():
-//   Signal handling is not available. The last parameter of
-//   lio_listio() is optional.
 // - struct aiocb::aio_reqprio:
 //   I/O priorities not supported.
 
 #ifndef _AIO_H_
 #define _AIO_H_
 
+#include <_/struct/sigevent.h>  // IWYU pragma: export
 #include <_/struct/timespec.h>  // IWYU pragma: export
 #include <_/types.h>
 
@@ -58,6 +56,7 @@ struct aiocb {
   off_t aio_offset;        // File offset.
   volatile void *aio_buf;  // Location of buffer.
   size_t aio_nbytes;       // Length of transfer.
+  struct sigevent aio_sigevent; // Signal event queue.
   int aio_lio_opcode;      // Operation to be performed.
 
   ssize_t __aio_return;  // Negative errno on failure, success otherwise.
@@ -83,9 +82,8 @@ int aio_error(const struct aiocb *);
 int aio_fsync(int, struct aiocb *);
 int aio_read(struct aiocb *);
 ssize_t aio_return(struct aiocb *);
-int aio_suspend(const struct aiocb *const *, int, const struct timespec *);
 int aio_write(struct aiocb *);
-int lio_listio(int, struct aiocb *__restrict const *__restrict, int, ...);
+int lio_listio(int, struct aiocb *__restrict const *__restrict, int, struct sigevent *__restrict);
 __END_DECLS
 
 #endif

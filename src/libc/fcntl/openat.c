@@ -28,8 +28,8 @@ int openat(int fd, const char *path, int oflag, ...) {
   // access mode provided to openat().
   cloudabi_rights_t min = 0;
   cloudabi_rights_t max =
-      ~(CLOUDABI_RIGHT_FD_DATASYNC | CLOUDABI_RIGHT_FD_READ |
-        CLOUDABI_RIGHT_FD_WRITE | CLOUDABI_RIGHT_FILE_ALLOCATE |
+      ~(CLOUDABI_RIGHT_FD_DATASYNC | CLOUDABI_RIGHT_POLL_FD_READ |
+        CLOUDABI_RIGHT_POLL_FD_WRITE | CLOUDABI_RIGHT_FILE_ALLOCATE |
         CLOUDABI_RIGHT_FILE_READDIR | CLOUDABI_RIGHT_FILE_STAT_FPUT_SIZE |
         CLOUDABI_RIGHT_MEM_MAP_EXEC);
   switch (oflag & O_ACCMODE) {
@@ -37,16 +37,16 @@ int openat(int fd, const char *path, int oflag, ...) {
     case O_RDWR:
     case O_WRONLY:
       if ((oflag & O_RDONLY) != 0) {
-        min |= (oflag & O_DIRECTORY) == 0 ? CLOUDABI_RIGHT_FD_READ
+        min |= (oflag & O_DIRECTORY) == 0 ? CLOUDABI_RIGHT_POLL_FD_READ
                                           : CLOUDABI_RIGHT_FILE_READDIR;
-        max |= CLOUDABI_RIGHT_FD_READ | CLOUDABI_RIGHT_FILE_READDIR |
+        max |= CLOUDABI_RIGHT_POLL_FD_READ | CLOUDABI_RIGHT_FILE_READDIR |
                CLOUDABI_RIGHT_MEM_MAP_EXEC;
       }
       if ((oflag & O_WRONLY) != 0) {
-        min |= CLOUDABI_RIGHT_FD_WRITE;
+        min |= CLOUDABI_RIGHT_POLL_FD_WRITE;
         if ((oflag & O_APPEND) == 0)
           min |= CLOUDABI_RIGHT_FD_SEEK;
-        max |= CLOUDABI_RIGHT_FD_DATASYNC | CLOUDABI_RIGHT_FD_WRITE |
+        max |= CLOUDABI_RIGHT_FD_DATASYNC | CLOUDABI_RIGHT_POLL_FD_WRITE |
                CLOUDABI_RIGHT_FILE_ALLOCATE |
                CLOUDABI_RIGHT_FILE_STAT_FPUT_SIZE;
       }
@@ -90,10 +90,6 @@ int openat(int fd, const char *path, int oflag, ...) {
       .fs_rights_base = max & fsb_cur.fs_rights_inheriting,
       .fs_rights_inheriting = fsb_cur.fs_rights_inheriting,
   };
-  // TODO(ed): vv Remove this code once operation_start() works. vv
-  if ((oflag & O_NONBLOCK) != 0)
-    fsb_new.fs_flags |= CLOUDABI_FDFLAG_NONBLOCK;
-  // TODO(ed): ^^ Remove this code once operation_start() works. ^^
   cloudabi_fd_t newfd;
   error = cloudabi_sys_file_open(lookup, path, strlen(path),
                                  (oflag >> 12) & 0xfff, &fsb_new, &newfd);

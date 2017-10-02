@@ -45,9 +45,9 @@ int pselect(int nfds, fd_set *restrict readfds, fd_set *restrict writefds,
     if (fd < nfds) {
       cloudabi_subscription_t *subscription = &subscriptions[nevents++];
       *subscription = (cloudabi_subscription_t){
-          .type = CLOUDABI_EVENTTYPE_FD_READ,
-          .fd_readwrite.fd = fd,
-          .fd_readwrite.flags = CLOUDABI_SUBSCRIPTION_FD_READWRITE_POLL,
+          .type = CLOUDABI_EVENTTYPE_FD_READABLE,
+          .fd_readwritable.fd = fd,
+          .fd_readwritable.flags = CLOUDABI_SUBSCRIPTION_FD_READWRITABLE_POLL,
       };
     }
   }
@@ -58,9 +58,9 @@ int pselect(int nfds, fd_set *restrict readfds, fd_set *restrict writefds,
     if (fd < nfds) {
       cloudabi_subscription_t *subscription = &subscriptions[nevents++];
       *subscription = (cloudabi_subscription_t){
-          .type = CLOUDABI_EVENTTYPE_FD_WRITE,
-          .fd_readwrite.fd = fd,
-          .fd_readwrite.flags = CLOUDABI_SUBSCRIPTION_FD_READWRITE_POLL,
+          .type = CLOUDABI_EVENTTYPE_FD_WRITABLE,
+          .fd_readwritable.fd = fd,
+          .fd_readwritable.flags = CLOUDABI_SUBSCRIPTION_FD_READWRITABLE_POLL,
       };
     }
   }
@@ -90,8 +90,8 @@ int pselect(int nfds, fd_set *restrict readfds, fd_set *restrict writefds,
   // Test for EBADF.
   for (size_t i = 0; i < nevents; ++i) {
     const cloudabi_event_t *event = &events[i];
-    if ((event->type == CLOUDABI_EVENTTYPE_FD_READ ||
-         event->type == CLOUDABI_EVENTTYPE_FD_WRITE) &&
+    if ((event->type == CLOUDABI_EVENTTYPE_FD_READABLE ||
+         event->type == CLOUDABI_EVENTTYPE_FD_WRITABLE) &&
         event->error == CLOUDABI_EBADF) {
       errno = EBADF;
       return -1;
@@ -103,10 +103,10 @@ int pselect(int nfds, fd_set *restrict readfds, fd_set *restrict writefds,
   FD_ZERO(writefds);
   for (size_t i = 0; i < nevents; ++i) {
     const cloudabi_event_t *event = &events[i];
-    int fd = event->fd_readwrite.fd;
-    if (event->type == CLOUDABI_EVENTTYPE_FD_READ) {
+    int fd = event->fd_readwritable.fd;
+    if (event->type == CLOUDABI_EVENTTYPE_FD_READABLE) {
       readfds->__fds[readfds->__nfds++] = fd;
-    } else if (event->type == CLOUDABI_EVENTTYPE_FD_WRITE) {
+    } else if (event->type == CLOUDABI_EVENTTYPE_FD_WRITABLE) {
       writefds->__fds[writefds->__nfds++] = fd;
     }
   }

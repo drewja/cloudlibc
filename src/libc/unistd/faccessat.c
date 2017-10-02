@@ -46,9 +46,9 @@ int faccessat(int fd, const char *path, int amode, int flag) {
     if ((amode & R_OK) != 0)
       min |= file.st_filetype == CLOUDABI_FILETYPE_DIRECTORY
                  ? CLOUDABI_RIGHT_FILE_READDIR
-                 : CLOUDABI_RIGHT_FD_READ;
+                 : CLOUDABI_RIGHT_POLL_FD_READ;
     if ((amode & W_OK) != 0)
-      min |= CLOUDABI_RIGHT_FD_WRITE;
+      min |= CLOUDABI_RIGHT_POLL_FD_WRITE;
     if ((amode & X_OK) != 0 && file.st_filetype != CLOUDABI_FILETYPE_DIRECTORY)
       min |= CLOUDABI_RIGHT_PROC_EXEC;
 

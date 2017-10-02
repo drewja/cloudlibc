@@ -22,9 +22,9 @@ int poll(struct pollfd *fds, size_t nfds, int timeout) {
       cloudabi_subscription_t *subscription = &subscriptions[nevents++];
       *subscription = (cloudabi_subscription_t){
           .userdata = (uintptr_t)pollfd,
-          .type = CLOUDABI_EVENTTYPE_FD_READ,
-          .fd_readwrite.fd = pollfd->fd,
-          .fd_readwrite.flags = CLOUDABI_SUBSCRIPTION_FD_READWRITE_POLL,
+          .type = CLOUDABI_EVENTTYPE_FD_READABLE,
+          .fd_readwritable.fd = pollfd->fd,
+          .fd_readwritable.flags = CLOUDABI_SUBSCRIPTION_FD_READWRITABLE_POLL,
       };
       created_events = true;
     }
@@ -32,9 +32,9 @@ int poll(struct pollfd *fds, size_t nfds, int timeout) {
       cloudabi_subscription_t *subscription = &subscriptions[nevents++];
       *subscription = (cloudabi_subscription_t){
           .userdata = (uintptr_t)pollfd,
-          .type = CLOUDABI_EVENTTYPE_FD_WRITE,
-          .fd_readwrite.fd = pollfd->fd,
-          .fd_readwrite.flags = CLOUDABI_SUBSCRIPTION_FD_READWRITE_POLL,
+          .type = CLOUDABI_EVENTTYPE_FD_WRITABLE,
+          .fd_readwritable.fd = pollfd->fd,
+          .fd_readwritable.flags = CLOUDABI_SUBSCRIPTION_FD_READWRITABLE_POLL,
       };
       created_events = true;
     }
@@ -76,8 +76,8 @@ int poll(struct pollfd *fds, size_t nfds, int timeout) {
   // Set revents fields.
   for (size_t i = 0; i < nevents; ++i) {
     const cloudabi_event_t *event = &events[i];
-    if (event->type == CLOUDABI_EVENTTYPE_FD_READ ||
-        event->type == CLOUDABI_EVENTTYPE_FD_WRITE) {
+    if (event->type == CLOUDABI_EVENTTYPE_FD_READABLE ||
+        event->type == CLOUDABI_EVENTTYPE_FD_WRITABLE) {
       struct pollfd *pollfd = (struct pollfd *)(uintptr_t)event->userdata;
       if (event->error == CLOUDABI_EBADF) {
         // Invalid file descriptor.
@@ -91,8 +91,8 @@ int poll(struct pollfd *fds, size_t nfds, int timeout) {
       } else {
         // Data can be read or written.
         pollfd->revents |=
-            event->type == CLOUDABI_EVENTTYPE_FD_READ ? POLLRDNORM : POLLWRNORM;
-        if (event->fd_readwrite.flags & CLOUDABI_EVENT_FD_READWRITE_HANGUP)
+            event->type == CLOUDABI_EVENTTYPE_FD_READABLE ? POLLRDNORM : POLLWRNORM;
+        if (event->fd_readwritable.flags & CLOUDABI_EVENT_FD_READWRITABLE_HANGUP)
           pollfd->revents |= POLLHUP;
       }
     }

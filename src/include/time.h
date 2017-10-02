@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2016 Nuxi, https://nuxi.nl/
+// Copyright (c) 2015-2017 Nuxi, https://nuxi.nl/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions
@@ -46,9 +46,6 @@
 //   Requires administrative privileges.
 // - asctime(), ctime(), gmtime() and localtime():
 //   Not thread-safe.
-// - struct itimerspec, timer_create(), timer_delete(), timer_getoverrun(),
-//   timer_gettime(), timer_settime():
-//   Requires signal handling support.
 
 #ifndef _TIME_H_
 #define _TIME_H_
@@ -78,6 +75,12 @@ typedef __time_t time_t;
 #define _TIME_T_DECLARED
 #endif
 
+typedef struct {
+  struct __timer *__timer;
+} timer_t;
+
+struct sigevent;
+
 struct tm {
   // Standard fields.
   int tm_sec;    // Seconds [0,59].
@@ -94,6 +97,11 @@ struct tm {
   int tm_gmtoff;        // Offset from UTC in seconds.
   const char *tm_zone;  // Timezone abbreviation.
   long tm_nsec;         // Nanoseconds [0,999999999].
+};
+
+struct itimerspec {
+  struct timespec  it_interval; // Timer period.
+  struct timespec  it_value;  // Timer expiration.
 };
 
 #define NULL _NULL
@@ -145,6 +153,13 @@ char *strptime_l(const char *__restrict, const char *__restrict,
                  struct tm *__restrict, locale_t);
 time_t time(time_t *);
 time_t timegm(struct tm *);
+int        timer_create(clockid_t, struct sigevent *__restrict,
+               timer_t *__restrict);
+int        timer_delete(timer_t);
+int        timer_getoverrun(timer_t);
+int        timer_gettime(timer_t, struct itimerspec *);
+int        timer_settime(timer_t, int, const struct itimerspec *__restrict,
+               struct itimerspec *__restrict);
 int timespec_get(struct timespec *, int);
 void tzset(void);
 __END_DECLS

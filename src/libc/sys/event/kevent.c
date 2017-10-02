@@ -20,8 +20,8 @@ static_assert(EV_ENABLE == CLOUDABI_SUBSCRIPTION_ENABLE, "Value mismatch");
 static_assert(EV_ONESHOT == CLOUDABI_SUBSCRIPTION_ONESHOT, "Value mismatch");
 
 static_assert(EVFILT_TIMER == CLOUDABI_EVENTTYPE_CLOCK, "Value mismatch");
-static_assert(EVFILT_READ == CLOUDABI_EVENTTYPE_FD_READ, "Value mismatch");
-static_assert(EVFILT_WRITE == CLOUDABI_EVENTTYPE_FD_WRITE, "Value mismatch");
+static_assert(EVFILT_READ == CLOUDABI_EVENTTYPE_FD_READABLE, "Value mismatch");
+static_assert(EVFILT_WRITE == CLOUDABI_EVENTTYPE_FD_WRITABLE, "Value mismatch");
 
 ssize_t kevent(int fd, const struct kevent *in, size_t nin, struct kevent *out,
                size_t nout, const struct timespec *timeout) {
@@ -45,7 +45,7 @@ ssize_t kevent(int fd, const struct kevent *in, size_t nin, struct kevent *out,
         break;
       case EVFILT_READ:
       case EVFILT_WRITE:
-        sub->fd_readwrite.fd = ke->ident;
+        sub->fd_readwritable.fd = ke->ident;
         break;
       default:
         errno = EINVAL;
@@ -88,9 +88,9 @@ ssize_t kevent(int fd, const struct kevent *in, size_t nin, struct kevent *out,
       case CLOUDABI_EVENTTYPE_CLOCK:
         ke->ident = ev->clock.identifier;
         break;
-      case CLOUDABI_EVENTTYPE_FD_READ:
-      case CLOUDABI_EVENTTYPE_FD_WRITE:
-        ke->ident = ev->fd_readwrite.fd;
+      case CLOUDABI_EVENTTYPE_FD_READABLE:
+      case CLOUDABI_EVENTTYPE_FD_WRITABLE:
+        ke->ident = ev->fd_readwritable.fd;
         break;
     }
 
@@ -101,10 +101,10 @@ ssize_t kevent(int fd, const struct kevent *in, size_t nin, struct kevent *out,
           // TODO(ed): Propagate the actual count.
           ke->data = 1;
           break;
-        case CLOUDABI_EVENTTYPE_FD_READ:
-        case CLOUDABI_EVENTTYPE_FD_WRITE:
-          ke->data = ev->fd_readwrite.nbytes;
-          if ((ev->fd_readwrite.flags & CLOUDABI_EVENT_FD_READWRITE_HANGUP) !=
+        case CLOUDABI_EVENTTYPE_FD_READABLE:
+        case CLOUDABI_EVENTTYPE_FD_WRITABLE:
+          ke->data = ev->fd_readwritable.nbytes;
+          if ((ev->fd_readwritable.flags & CLOUDABI_EVENT_FD_READWRITABLE_HANGUP) !=
               0)
             ke->flags |= EV_EOF;
           break;
