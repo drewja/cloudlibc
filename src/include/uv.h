@@ -419,6 +419,7 @@ typedef struct {
 } uv_tcp_t;
 
 __BEGIN_DECLS
+int uv_tcp_init(uv_loop_t *, uv_tcp_t *);
 int uv_tcp_open(uv_tcp_t *, uv_os_sock_t);
 __END_DECLS
 
@@ -431,6 +432,7 @@ typedef struct {
 } uv_pipe_t;
 
 __BEGIN_DECLS
+int uv_pipe_init(uv_loop_t *, uv_pipe_t *, int);
 int uv_pipe_open(uv_pipe_t *, uv_file);
 __END_DECLS
 
