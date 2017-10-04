@@ -233,8 +233,8 @@ __END_DECLS
 //
 
 typedef struct {
-#define __UV_REQ_FIELDS \
-  void *data;           \
+#define __UV_REQ_FIELDS               \
+  _Alignas(__max_align_t) void *data; \
   uv_req_type type;
   __UV_REQ_FIELDS
 } uv_req_t;
