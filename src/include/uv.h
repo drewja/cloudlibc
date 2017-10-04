@@ -202,9 +202,11 @@ __END_DECLS
 // uv_handle_t - Base handle.
 
 struct __uv_handle {
-  _Alignas(__max_align_t) uv_loop_t *loop;
-  uv_handle_type type;
+#define __UV_HANDLE_FIELDS                 \
+  _Alignas(__max_align_t) uv_loop_t *loop; \
+  uv_handle_type type;                     \
   void *data;
+  __UV_HANDLE_FIELDS
 };
 
 union uv_any_handle {
@@ -231,8 +233,10 @@ __END_DECLS
 //
 
 typedef struct {
-  void *data;
+#define __UV_REQ_FIELDS \
+  void *data;           \
   uv_req_type type;
+  __UV_REQ_FIELDS
 } uv_req_t;
 
 __BEGIN_DECLS
@@ -245,8 +249,7 @@ __END_DECLS
 //
 
 typedef struct {
-  // TODO(ed): Add handle fields.
-  int __hack;
+  __UV_HANDLE_FIELDS
 } uv_timer_t;
 
 typedef void (*uv_timer_cb)(uv_timer_t *);
@@ -265,8 +268,7 @@ __END_DECLS
 //
 
 typedef struct {
-  // TODO(ed): Add handle fields.
-  int __hack;
+  __UV_HANDLE_FIELDS
 } uv_prepare_t;
 
 typedef void (*uv_prepare_cb)(uv_prepare_t *);
@@ -282,8 +284,7 @@ __END_DECLS
 //
 
 typedef struct {
-  // TODO(ed): Add handle fields.
-  int __hack;
+  __UV_HANDLE_FIELDS
 } uv_check_t;
 
 typedef void (*uv_check_cb)(uv_check_t *);
@@ -299,8 +300,7 @@ __END_DECLS
 //
 
 typedef struct {
-  // TODO(ed): Add handle fields.
-  int __hack;
+  __UV_HANDLE_FIELDS
 } uv_idle_t;
 
 typedef void (*uv_idle_cb)(uv_idle_t *);
@@ -316,8 +316,7 @@ __END_DECLS
 //
 
 typedef struct {
-  // TODO(ed): Add handle fields.
-  int __hack;
+  __UV_HANDLE_FIELDS
 } uv_async_t;
 
 typedef void (*uv_async_cb)(uv_async_t *);
@@ -332,8 +331,7 @@ __END_DECLS
 //
 
 typedef struct {
-  // TODO(ed): Add handle fields.
-  int __hack;
+  __UV_HANDLE_FIELDS
 } uv_poll_t;
 
 typedef void (*uv_poll_cb)(uv_poll_t *, int, int);
@@ -356,8 +354,7 @@ __END_DECLS
 //
 
 typedef struct {
-  // TODO(ed): Add handle fields.
-  int __hack;
+  __UV_HANDLE_FIELDS
 } uv_process_t;
 
 typedef void (*uv_exit_cb)(uv_process_t *, int64_t, int);
@@ -378,17 +375,19 @@ __END_DECLS
 //
 
 typedef struct {
-  // TODO(ed): Add handle fields.
+#define __UV_STREAM_FIELDS \
+  __UV_HANDLE_FIELDS       \
   size_t write_queue_size;
+  __UV_STREAM_FIELDS
 } uv_stream_t;
 
 typedef struct {
-  // TODO(ed): Add request fields.
+  __UV_REQ_FIELDS
   uv_stream_t *handle;
 } uv_shutdown_t;
 
 typedef struct {
-  // TODO(ed): Add request fields.
+  __UV_REQ_FIELDS
   uv_stream_t *handle;
   uv_stream_t *send_handle;
 } uv_write_t;
@@ -416,8 +415,7 @@ __END_DECLS
 //
 
 typedef struct {
-  // TODO(ed): Add stream fields.
-  int __hack;
+  __UV_STREAM_FIELDS
 } uv_tcp_t;
 
 __BEGIN_DECLS
@@ -429,8 +427,7 @@ __END_DECLS
 //
 
 typedef struct {
-  // TODO(ed): Add stream fields.
-  int __hack;
+  __UV_STREAM_FIELDS
 } uv_pipe_t;
 
 __BEGIN_DECLS
@@ -480,7 +477,7 @@ typedef enum {
 } uv_fs_type;
 
 typedef struct {
-  // TODO(ed): Add request fields.
+  __UV_REQ_FIELDS
   uv_loop_t *loop;
   uv_fs_type fs_type;
   ssize_t result;
@@ -510,7 +507,7 @@ __END_DECLS
 //
 
 typedef struct {
-  // TODO(ed): Add request fields.
+  __UV_REQ_FIELDS
   uv_loop_t *loop;
 } uv_work_t;
 
@@ -526,13 +523,13 @@ __END_DECLS
 //
 
 typedef struct {
-  // TODO(ed): Add request fields.
+  __UV_REQ_FIELDS
   uv_loop_t *loop;
   struct addrinfo *addrinfo;
 } uv_getaddrinfo_t;
 
 typedef struct {
-  // TODO(ed): Add request fields.
+  __UV_REQ_FIELDS
   // TODO(ed): Add assertions for host/service size!
   uv_loop_t *loop;
   char host[57];
@@ -636,5 +633,9 @@ int uv_os_getenv(const char *, char *, size_t *);
 void uv_print_active_handles(uv_loop_t *, FILE *);
 void uv_print_all_handles(uv_loop_t *, FILE *);
 __END_DECLS
+
+#undef __UV_HANDLE_FIELDS
+#undef __UV_REQ_FIELDS
+#undef __UV_STREAM_FIELDS
 
 #endif
