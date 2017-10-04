@@ -175,7 +175,9 @@ __END_DECLS
 
 typedef struct {
   void *data;
-  int __hack;
+
+  uint64_t __now;
+  _Bool __stop;
 } uv_loop_t;
 
 typedef enum {
