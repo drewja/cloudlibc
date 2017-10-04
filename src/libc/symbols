@@ -952,6 +952,11 @@ uv_rwlock_tryrdlock
 uv_rwlock_trywrlock
 uv_rwlock_wrlock
 uv_rwlock_wrunlock
+uv_sem_destroy
+uv_sem_init
+uv_sem_post
+uv_sem_trywait
+uv_sem_wait
 uv_thread_create
 uv_thread_equal
 uv_thread_join
