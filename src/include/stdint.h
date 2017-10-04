@@ -48,7 +48,10 @@ typedef __int48_t int48_t;
 #ifdef __INT56_TYPE__
 typedef __int56_t int56_t;
 #endif
+#ifndef _INT64_T_DECLARED
 typedef __int64_t int64_t;
+#define _INT64_T_DECLARED
+#endif
 
 #ifndef _UINT8_T_DECLARED
 typedef __uint8_t uint8_t;
