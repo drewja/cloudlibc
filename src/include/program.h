@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2016 Nuxi, https://nuxi.nl/
+// Copyright (c) 2015-2017 Nuxi, https://nuxi.nl/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions
@@ -37,7 +37,6 @@ __BEGIN_DECLS
 int program_exec(int, const argdata_t *);
 const char *program_getuuid(void);
 _Noreturn void program_main(const argdata_t *);
-int program_spawn(int, const argdata_t *);
 __END_DECLS
 
 #endif

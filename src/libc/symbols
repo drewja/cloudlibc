@@ -621,7 +621,6 @@ preadv
 program_exec
 program_getuuid
 program_main
-program_spawn
 pselect
 psiginfo
 psiginfo_l
