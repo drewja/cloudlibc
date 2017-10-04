@@ -68,6 +68,7 @@ typedef struct __uv_handle uv_handle_t;
 typedef enum {
   UV_UNKNOWN_HANDLE = 0,
   // TODO(ed): Implement!
+  UV_NAMED_PIPE,
 } uv_handle_type;
 
 typedef enum {
@@ -406,8 +407,6 @@ int uv_stream_set_blocking(uv_stream_t *, int);
 int uv_try_write(uv_stream_t *, const uv_buf_t *, unsigned int);
 int uv_write(uv_write_t *, uv_stream_t *, const uv_buf_t *, unsigned int,
              uv_write_cb);
-int uv_write2(uv_write_t *, uv_stream_t *, const uv_buf_t *, unsigned int,
-              uv_stream_t *, uv_write_cb);
 __END_DECLS
 
 //
