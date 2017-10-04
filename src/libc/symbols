@@ -34,10 +34,6 @@ acosh
 acoshf
 acoshl
 acosl
-aio_error
-aio_read
-aio_return
-aio_write
 aligned_alloc
 alphasort
 arc4random
@@ -487,7 +483,6 @@ lgammaf_r
 lgammal
 lgammal_r
 linkat
-lio_listio
 llabs
 lldiv
 llrint

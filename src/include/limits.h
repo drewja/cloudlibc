@@ -41,9 +41,9 @@
 
 // Runtime invariant values.
 
-// AIO_LISTIO_MAX: Indeterminate.
-// AIO_MAX: Indeterminate.
-// AIO_PRIO_DELTA_MAX: Prioritization of asynchronous I/O not implemented.
+// AIO_LISTIO_MAX: Asynchronous I/O not available.
+// AIO_MAX: Asynchronous I/O not available.
+// AIO_PRIO_DELTA_MAX: Asynchronous I/O not available.
 // ARG_MAX: Indeterminate.
 // ATEXIT_MAX: Indeterminate.
 // CHILD_MAX: Indeterminate.
