@@ -28,9 +28,17 @@
 
 #include <_/types.h>
 
+#ifndef argdata_t
+typedef struct argdata_t argdata_t;
+#define argdata_t argdata_t
+#endif
 #ifndef _FILE_DECLARED
 typedef struct _FILE FILE;
 #define _FILE_DECLARED
+#endif
+#ifndef _INT64_T_DECLARED
+typedef __int64_t int64_t;
+#define _INT64_T_DECLARED
 #endif
 #ifndef _SIZE_T_DECLARED
 typedef __size_t size_t;
@@ -45,38 +53,27 @@ typedef __uint64_t uint64_t;
 #define _UINT64_T_DECLARED
 #endif
 
+struct addrinfo;
+struct sockaddr;
 struct sockaddr_in;
 struct sockaddr_in6;
-
-//
-// Miscellaneous utilities.
-//
-
-typedef struct {
-  char *base;
-  size_t len;
-} uv_buf_t;
 
 typedef int uv_file;
 typedef int uv_os_fd_t;
 typedef int uv_os_sock_t;
 
-__BEGIN_DECLS
-uv_buf_t uv_buf_init(char *, size_t);
-int uv_os_getenv(const char *, char *, size_t *);
-uint64_t uv_hrtime(void);
-int uv_inet_ntop(int, const void *, char *, size_t);
-int uv_inet_pton(int, const char *, void *);
-int uv_ip4_addr(const char *, int, struct sockaddr_in *);
-int uv_ip6_addr(const char *, int, struct sockaddr_in6 *);
-int uv_ip4_name(const struct sockaddr_in *, char *, size_t);
-int uv_ip6_name(const struct sockaddr_in6 *, char *, size_t);
-#if 0  // TODO(ed): Add these.
-uv_handle_type uv_guess_handle(uv_file);
-void uv_print_active_handles(uv_loop_t*, FILE*);
-void uv_print_all_handles(uv_loop_t*, FILE*);
-#endif
-__END_DECLS
+typedef struct __uv_buf uv_buf_t;
+typedef struct __uv_handle uv_handle_t;
+
+typedef enum {
+  UV_UNKNOWN_HANDLE = 0,
+  // TODO(ed): Implement!
+} uv_handle_type;
+
+typedef enum {
+  UV_UNKNOWN_REQ = 0,
+  // TODO(ed): Implement!
+} uv_req_type;
 
 //
 // Error handling.
@@ -172,6 +169,389 @@ int uv_translate_sys_error(int);
 __END_DECLS
 
 //
+// uv_loop_t - Event loop.
+//
+
+typedef struct {
+  void *data;
+  int __hack;
+} uv_loop_t;
+
+typedef enum {
+  UV_RUN_DEFAULT = 0,
+  UV_RUN_ONCE,
+  UV_RUN_NOWAIT,
+} uv_run_mode;
+
+typedef void (*uv_walk_cb)(uv_handle_t *, void *);
+
+__BEGIN_DECLS
+int uv_backend_timeout(const uv_loop_t *);
+int uv_loop_alive(const uv_loop_t *);
+int uv_loop_close(uv_loop_t *);
+int uv_loop_init(uv_loop_t *);
+size_t uv_loop_size(void);
+uint64_t uv_now(const uv_loop_t *);
+int uv_run(uv_loop_t *, uv_run_mode);
+void uv_stop(uv_loop_t *);
+void uv_update_time(uv_loop_t *);
+void uv_walk(uv_loop_t *, uv_walk_cb, void *);
+__END_DECLS
+
+//
+// uv_handle_t - Base handle.
+
+struct __uv_handle {
+  _Alignas(__max_align_t) uv_loop_t *loop;
+  uv_handle_type type;
+  void *data;
+};
+
+union uv_any_handle {
+  // TODO(ed): Implement!
+  int __hack;
+};
+
+typedef void (*uv_alloc_cb)(uv_handle_t *, size_t, uv_buf_t *);
+typedef void (*uv_close_cb)(uv_handle_t *);
+
+__BEGIN_DECLS
+void uv_close(uv_handle_t *, uv_close_cb);
+int uv_fileno(const uv_handle_t *, uv_os_fd_t *);
+size_t uv_handle_size(uv_handle_type);
+int uv_has_ref(const uv_handle_t *);
+int uv_is_active(const uv_handle_t *);
+int uv_is_closing(const uv_handle_t *);
+void uv_ref(uv_handle_t *);
+void uv_unref(uv_handle_t *);
+__END_DECLS
+
+//
+// uv_req_t - Base request.
+//
+
+typedef struct {
+  void *data;
+  uv_req_type type;
+} uv_req_t;
+
+__BEGIN_DECLS
+int uv_cancel(uv_req_t *);
+size_t uv_req_size(uv_req_type);
+__END_DECLS
+
+//
+// uv_timer_t - Timer handle.
+//
+
+typedef struct {
+  // TODO(ed): Add handle fields.
+  int __hack;
+} uv_timer_t;
+
+typedef void (*uv_timer_cb)(uv_timer_t *);
+
+__BEGIN_DECLS
+int uv_timer_again(uv_timer_t *);
+uint64_t uv_timer_get_repeat(const uv_timer_t *);
+int uv_timer_init(uv_loop_t *, uv_timer_t *);
+void uv_timer_set_repeat(uv_timer_t *, uint64_t);
+int uv_timer_start(uv_timer_t *, uv_timer_cb, uint64_t, uint64_t);
+int uv_timer_stop(uv_timer_t *);
+__END_DECLS
+
+//
+// uv_prepare_t - Prepare handle.
+//
+
+typedef struct {
+  // TODO(ed): Add handle fields.
+  int __hack;
+} uv_prepare_t;
+
+typedef void (*uv_prepare_cb)(uv_prepare_t *);
+
+__BEGIN_DECLS
+int uv_prepare_init(uv_loop_t *, uv_prepare_t *);
+int uv_prepare_start(uv_prepare_t *, uv_prepare_cb);
+int uv_prepare_stop(uv_prepare_t *);
+__END_DECLS
+
+//
+// uv_check_t - Check handle.
+//
+
+typedef struct {
+  // TODO(ed): Add handle fields.
+  int __hack;
+} uv_check_t;
+
+typedef void (*uv_check_cb)(uv_check_t *);
+
+__BEGIN_DECLS
+int uv_check_init(uv_loop_t *, uv_check_t *);
+int uv_check_start(uv_check_t *, uv_check_cb);
+int uv_check_stop(uv_check_t *);
+__END_DECLS
+
+//
+// uv_idle_t - Idle handle.
+//
+
+typedef struct {
+  // TODO(ed): Add handle fields.
+  int __hack;
+} uv_idle_t;
+
+typedef void (*uv_idle_cb)(uv_idle_t *);
+
+__BEGIN_DECLS
+int uv_idle_init(uv_loop_t *, uv_idle_t *);
+int uv_idle_start(uv_idle_t *, uv_idle_cb);
+int uv_idle_stop(uv_idle_t *);
+__END_DECLS
+
+//
+// uv_async_t - Async handle.
+//
+
+typedef struct {
+  // TODO(ed): Add handle fields.
+  int __hack;
+} uv_async_t;
+
+typedef void (*uv_async_cb)(uv_async_t *);
+
+__BEGIN_DECLS
+int uv_async_init(uv_loop_t *, uv_async_t *, uv_async_cb);
+int uv_async_send(uv_async_t *);
+__END_DECLS
+
+//
+// uv_poll_t - Poll handle.
+//
+
+typedef struct {
+  // TODO(ed): Add handle fields.
+  int __hack;
+} uv_poll_t;
+
+typedef void (*uv_poll_cb)(uv_poll_t *, int, int);
+
+enum uv_poll_event {
+  UV_READABLE = 1,
+  UV_WRITABLE = 2,
+  UV_DISCONNECT = 4,
+};
+
+__BEGIN_DECLS
+int uv_poll_init(uv_loop_t *, uv_poll_t *, int);
+int uv_poll_init_socket(uv_loop_t *, uv_poll_t *, uv_os_sock_t);
+int uv_poll_start(uv_poll_t *, int, uv_poll_cb);
+int uv_poll_stop(uv_poll_t *);
+__END_DECLS
+
+//
+// uv_process_t - Process handle.
+//
+
+typedef struct {
+  // TODO(ed): Add handle fields.
+  int __hack;
+} uv_process_t;
+
+typedef void (*uv_exit_cb)(uv_process_t *, int64_t, int);
+
+typedef struct {
+  uv_exit_cb exit_cb;
+  int fd;
+  const argdata_t *argdata;
+} uv_process_options_t;
+
+__BEGIN_DECLS
+int uv_process_kill(uv_process_t *, int);
+int uv_spawn(uv_loop_t *, uv_process_t *, const uv_process_options_t *);
+__END_DECLS
+
+//
+// uv_stream_t - Stream handle.
+//
+
+typedef struct {
+  // TODO(ed): Add handle fields.
+  size_t write_queue_size;
+} uv_stream_t;
+
+typedef struct {
+  // TODO(ed): Add request fields.
+  uv_stream_t *handle;
+} uv_shutdown_t;
+
+typedef struct {
+  // TODO(ed): Add request fields.
+  uv_stream_t *handle;
+  uv_stream_t *send_handle;
+} uv_write_t;
+
+typedef void (*uv_read_cb)(uv_stream_t *, ssize_t, const uv_buf_t *);
+typedef void (*uv_shutdown_cb)(uv_shutdown_t *, int);
+typedef void (*uv_write_cb)(uv_write_t *, int);
+
+__BEGIN_DECLS
+int uv_is_readable(const uv_stream_t *);
+int uv_is_writable(const uv_stream_t *);
+int uv_read_start(uv_stream_t *, uv_alloc_cb, uv_read_cb);
+int uv_read_stop(uv_stream_t *);
+int uv_shutdown(uv_shutdown_t *, uv_stream_t *, uv_shutdown_cb);
+int uv_stream_set_blocking(uv_stream_t *, int);
+int uv_try_write(uv_stream_t *, const uv_buf_t *, unsigned int);
+int uv_write(uv_write_t *, uv_stream_t *, const uv_buf_t *, unsigned int,
+             uv_write_cb);
+int uv_write2(uv_write_t *, uv_stream_t *, const uv_buf_t *, unsigned int,
+              uv_stream_t *, uv_write_cb);
+__END_DECLS
+
+//
+// uv_tcp_t - TCP handle.
+//
+
+typedef struct {
+  // TODO(ed): Add stream fields.
+  int __hack;
+} uv_tcp_t;
+
+__BEGIN_DECLS
+int uv_tcp_open(uv_tcp_t *, uv_os_sock_t);
+__END_DECLS
+
+//
+// uv_pipe_t - Pipe handle.
+//
+
+typedef struct {
+  // TODO(ed): Add stream fields.
+  int __hack;
+} uv_pipe_t;
+
+__BEGIN_DECLS
+int uv_pipe_open(uv_pipe_t *, uv_file);
+__END_DECLS
+
+//
+// File system operations.
+//
+
+typedef struct {
+  long tv_sec;
+  long tv_nsec;
+} uv_timespec_t;
+
+typedef struct {
+  uint64_t st_dev;
+  uint64_t st_mode;
+  uint64_t st_nlink;
+  uint64_t st_uid;
+  uint64_t st_gid;
+  uint64_t st_rdev;
+  uint64_t st_ino;
+  uint64_t st_size;
+  uint64_t st_blksize;
+  uint64_t st_blocks;
+  uint64_t st_flags;
+  uint64_t st_gen;
+  uv_timespec_t st_atim;
+  uv_timespec_t st_mtim;
+  uv_timespec_t st_ctim;
+  uv_timespec_t st_birthtim;
+} uv_stat_t;
+
+typedef enum {
+  UV_FS_UNKNOWN = -1,
+  UV_FS_CUSTOM,
+  UV_FS_CLOSE,
+  UV_FS_FDATASYNC,
+  UV_FS_FSTAT,
+  UV_FS_FSYNC,
+  UV_FS_FTRUNCATE,
+  UV_FS_FUTIME,
+  UV_FS_READ,
+  UV_FS_SENDFILE,
+  UV_FS_WRITE,
+} uv_fs_type;
+
+typedef struct {
+  // TODO(ed): Add request fields.
+  uv_loop_t *loop;
+  uv_fs_type fs_type;
+  ssize_t result;
+  uv_stat_t statbuf;
+} uv_fs_t;
+
+typedef void (*uv_fs_cb)(uv_fs_t *);
+
+__BEGIN_DECLS
+int uv_fs_close(uv_loop_t *, uv_fs_t *, uv_file, uv_fs_cb);
+int uv_fs_fdatasync(uv_loop_t *, uv_fs_t *, uv_file, uv_fs_cb);
+int uv_fs_fstat(uv_loop_t *, uv_fs_t *, uv_file, uv_fs_cb);
+int uv_fs_fsync(uv_loop_t *, uv_fs_t *, uv_file, uv_fs_cb);
+int uv_fs_ftruncate(uv_loop_t *, uv_fs_t *, uv_file, int64_t, uv_fs_cb);
+int uv_fs_futime(uv_loop_t *, uv_fs_t *, uv_file, double, double, uv_fs_cb);
+int uv_fs_read(uv_loop_t *, uv_fs_t *, uv_file, const uv_buf_t *, unsigned int,
+               int64_t, uv_fs_cb);
+int uv_fs_sendfile(uv_loop_t *, uv_fs_t *, uv_file, uv_file, int64_t, size_t,
+                   uv_fs_cb);
+int uv_fs_write(uv_loop_t *, uv_fs_t *, uv_file, const uv_buf_t *, unsigned int,
+                int64_t, uv_fs_cb);
+uv_os_fd_t uv_get_osfhandle(int);
+__END_DECLS
+
+//
+// Thread pool work scheduling.
+//
+
+typedef struct {
+  // TODO(ed): Add request fields.
+  uv_loop_t *loop;
+} uv_work_t;
+
+typedef void (*uv_work_cb)(uv_work_t *);
+typedef void (*uv_after_work_cb)(uv_work_t *, int);
+
+__BEGIN_DECLS
+int uv_queue_work(uv_loop_t *, uv_work_t *, uv_work_cb, uv_after_work_cb);
+__END_DECLS
+
+//
+// DNS utility functions.
+//
+
+typedef struct {
+  // TODO(ed): Add request fields.
+  uv_loop_t *loop;
+  struct addrinfo *addrinfo;
+} uv_getaddrinfo_t;
+
+typedef struct {
+  // TODO(ed): Add request fields.
+  // TODO(ed): Add assertions for host/service size!
+  uv_loop_t *loop;
+  char host[57];
+  char service[64];
+} uv_getnameinfo_t;
+
+typedef void (*uv_getaddrinfo_cb)(uv_getaddrinfo_t *, int, struct addrinfo *);
+typedef void (*uv_getnameinfo_cb)(uv_getnameinfo_t *, int, const char *,
+                                  const char *);
+
+__BEGIN_DECLS
+void uv_freeaddrinfo(struct addrinfo *);
+int uv_getaddrinfo(uv_loop_t *, uv_getaddrinfo_t *, uv_getaddrinfo_cb,
+                   const char *, const char *, const struct addrinfo *);
+int uv_getnameinfo(uv_loop_t *, uv_getnameinfo_t *, uv_getnameinfo_cb,
+                   const struct sockaddr *, int);
+__END_DECLS
+
+//
 // Threading and synchronization utilities.
 //
 
@@ -182,8 +562,9 @@ typedef __pthread_lock_t uv_mutex_t;
 typedef __pthread_once_t uv_once_t;
 typedef __pthread_lock_t uv_rwlock_t;
 typedef __sem_t uv_sem_t;
-typedef void (*uv_thread_cb)(void *);
 typedef __pthread_t uv_thread_t;
+
+typedef void (*uv_thread_cb)(void *);
 
 #define UV_ONCE_INIT \
   { _UINT32_C(0x80000000) }
@@ -232,115 +613,28 @@ int uv_thread_join(uv_thread_t *);
 uv_thread_t uv_thread_self(void);
 __END_DECLS
 
-typedef struct {
-  int __hack;
-} uv_loop_t;
+//
+// Miscellaneous utilities.
+//
 
-typedef enum {
-  UV_RUN_DEFAULT = 0,
-  UV_RUN_ONCE,
-  UV_RUN_NOWAIT,
-} uv_run_mode;
-
-// Handle types.
-
-typedef struct {
-  _Alignas(__max_align_t) int __hack;
-} uv_handle_t;
-
-typedef struct {
-  _Alignas(__max_align_t) int __hack;
-} uv_idle_t;
-
-typedef struct {
-  _Alignas(__max_align_t) int __hack;
-} uv_pipe_t;
-
-typedef struct {
-  _Alignas(__max_align_t) int __hack;
-} uv_poll_t;
-
-#if 0
-union uv_any_handle {
-  uv_async_t async;
-  uv_check_t check;
-  uv_handle_t handle;
-  uv_idle_t idle;
-  uv_pipe_t pipe;
-  uv_prepare_t prepare;
-  uv_stream_t stream;
-  uv_tcp_t tcp;
-  uv_timer_t timer;
-  uv_udp_t udp;
-
+struct __uv_buf {
+  char *base;
+  size_t len;
 };
-
-enum uv_poll_event {
-  UV_READABLE = 0x1,
-  UV_WRITABLE = 0x2,
-  UV_DISCONNECT = 0x4,
-};
-
-typedef struct {
-  _Alignas(__max_align_t) int __hack;
-} uv_prepare_t;
-
-typedef struct {
-  _Alignas(__max_align_t) int __hack;
-} uv_stream_t;
-
-typedef struct {
-  _Alignas(__max_align_t) int __hack;
-} uv_write_t;
-
-// Request types.
-
-typedef void (*uv_alloc_cb)(uv_handle_t *, size_t, uv_buf_t *);
-typedef void (*uv_close_cb)(uv_handle_t *);
-typedef void (*uv_idle_cb)(uv_idle_t *);
-typedef void (*uv_poll_cb)(uv_poll_t *, int, int);
-typedef void (*uv_prepare_cb)(uv_prepare_t *);
-typedef void (*uv_read_cb)(uv_stream_t *, ssize_t, const uv_buf_t *);
-typedef void (*uv_walk_cb)(uv_handle_t *, void *);
-typedef void (*uv_write_cb)(uv_write_t *, int);
 
 __BEGIN_DECLS
-void uv_cancel(uv_req_t *);
-void uv_close(uv_handle_t *, uv_close_cb);
-uv_loop_t *uv_default_loop(void);  // TODO(ed): Remove this?
-int uv_fileno(const uv_handle_t *, uv_os_fd_t *);
-size_t uv_handle_size(uv_handle_type);
-int uv_has_ref(const uv_handle_t *);
-int uv_loop_alive(const uv_loop_t *);
-int uv_loop_close(uv_loop_t *);
-int uv_loop_init(uv_loop_t *);
-size_t uv_loop_size(void);
-int uv_idle_init(uv_loop_t *, uv_idle_t *);
-int uv_idle_stop(uv_idle_t *);
-int uv_idle_start(uv_idle_t *, uv_idle_cb);
-int uv_is_active(const uv_handle_t *);
-int uv_is_closing(const uv_handle_t *);
-uint64_t uv_now(const uv_loop_t *);
-int uv_pipe_init(uv_loop_t *, uv_pipe_t *, int);
-int uv_pipe_open(uv_pipe_t *, uv_file);
-int uv_poll_init(uv_loop_t *, uv_poll_t *, int);
-int uv_poll_init_socket(uv_loop_t *, uv_poll_t *, uv_os_sock_t);
-int uv_poll_start(uv_poll_t *, int, uv_poll_cb);
-int uv_poll_stop(uv_poll_t *);
-int uv_prepare_init(uv_loop_t *, uv_prepare_t *);
-int uv_prepare_start(uv_prepare_t *, uv_prepare_cb);
-int uv_prepare_stop(uv_prepare_t *);
-int uv_read_start(uv_stream_t *, uv_alloc_cb, uv_read_cb);
-void uv_ref(uv_handle_t *);
-int uv_run(uv_loop_t *, uv_run_mode);
-void uv_stop(uv_loop_t *);
-int uv_tcp_open(uv_tcp_t*, uv_os_sock_t);
-void uv_update_time(uv_loop_t *);
-void uv_unref(uv_handle_t *);
-void uv_walk(uv_loop_t *, uv_walk_cb, void *);
-int uv_write(uv_write_t *, uv_stream_t *, const uv_buf_t *, size_t,
-             uv_write_cb);
+uv_buf_t uv_buf_init(char *, size_t);
+uv_handle_type uv_guess_handle(uv_file);
+uint64_t uv_hrtime(void);
+int uv_inet_ntop(int, const void *, char *, size_t);
+int uv_inet_pton(int, const char *, void *);
+int uv_ip4_addr(const char *, int, struct sockaddr_in *);
+int uv_ip6_addr(const char *, int, struct sockaddr_in6 *);
+int uv_ip4_name(const struct sockaddr_in *, char *, size_t);
+int uv_ip6_name(const struct sockaddr_in6 *, char *, size_t);
+int uv_os_getenv(const char *, char *, size_t *);
+void uv_print_active_handles(uv_loop_t *, FILE *);
+void uv_print_all_handles(uv_loop_t *, FILE *);
 __END_DECLS
-#endif
 
 #endif
