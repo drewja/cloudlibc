@@ -411,7 +411,6 @@ typedef struct {
 typedef struct {
   __UV_REQ_FIELDS
   uv_stream_t *handle;
-  uv_stream_t *send_handle;
 } uv_write_t;
 
 typedef void (*uv_read_cb)(uv_stream_t *, ssize_t, const uv_buf_t *);
