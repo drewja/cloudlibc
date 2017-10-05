@@ -64,6 +64,7 @@ typedef int uv_os_sock_t;
 
 typedef struct __uv_buf uv_buf_t;
 typedef struct __uv_handle uv_handle_t;
+typedef struct __uv_timer uv_timer_t;
 
 typedef enum {
   UV_UNKNOWN_HANDLE = 0,
@@ -192,11 +193,18 @@ __END_DECLS
 // uv_loop_t - Event loop.
 //
 
+struct __uv_timer_heap {
+  uv_timer_t **__timers;
+  size_t __length;
+  size_t __capacity;
+};
+
 typedef struct {
   void *data;
 
   uint64_t __now;
   _Bool __stop;
+  struct __uv_timer_heap __timers;
 } uv_loop_t;
 
 typedef enum {
@@ -270,11 +278,15 @@ __END_DECLS
 // uv_timer_t - Timer handle.
 //
 
-typedef struct {
-  __UV_HANDLE_FIELDS
-} uv_timer_t;
-
 typedef void (*uv_timer_cb)(uv_timer_t *);
+
+struct __uv_timer {
+  __UV_HANDLE_FIELDS
+
+  uv_timer_cb __cb;
+  uint64_t __timeout;
+  uint64_t __repeat;
+};
 
 __BEGIN_DECLS
 int uv_timer_again(uv_timer_t *);
