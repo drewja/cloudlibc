@@ -69,6 +69,7 @@ typedef enum {
   UV_UNKNOWN_HANDLE = 0,
   // TODO(ed): Implement!
   UV_NAMED_PIPE,
+  UV_FILE,
 } uv_handle_type;
 
 typedef enum {
