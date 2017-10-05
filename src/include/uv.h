@@ -455,6 +455,7 @@ typedef struct {
 
 __BEGIN_DECLS
 int uv_tcp_init(uv_loop_t *, uv_tcp_t *);
+int uv_tcp_init_ex(uv_loop_t *, uv_tcp_t *, unsigned int);
 int uv_tcp_open(uv_tcp_t *, uv_os_sock_t);
 __END_DECLS
 
