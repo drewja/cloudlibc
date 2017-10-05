@@ -67,14 +67,32 @@ typedef struct __uv_handle uv_handle_t;
 
 typedef enum {
   UV_UNKNOWN_HANDLE = 0,
-  // TODO(ed): Implement!
-  UV_NAMED_PIPE,
+  UV_ASYNC,
+  UV_CHECK,
   UV_FILE,
+  UV_HANDLE,
+  UV_IDLE,
+  UV_NAMED_PIPE,
+  UV_POLL,
+  UV_PREPARE,
+  UV_PROCESS,
+  UV_STREAM,
+  UV_TCP,
+  UV_TIMER,
+  UV_HANDLE_TYPE_MAX,
 } uv_handle_type;
 
 typedef enum {
   UV_UNKNOWN_REQ = 0,
-  // TODO(ed): Implement!
+  UV_FS,
+  UV_GETADDRINFO,
+  UV_GETNAMEINFO,
+  UV_REQ,
+  UV_SHUTDOWN,
+  UV_WORK,
+  UV_WRITE,
+  UV_REQ_TYPE_PRIVATE,
+  UV_REQ_TYPE_MAX,
 } uv_req_type;
 
 //
