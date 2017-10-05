@@ -411,6 +411,7 @@ typedef struct {
 typedef struct {
   __UV_REQ_FIELDS
   uv_stream_t *handle;
+  uv_stream_t *send_handle;
 } uv_write_t;
 
 typedef void (*uv_read_cb)(uv_stream_t *, ssize_t, const uv_buf_t *);
@@ -418,6 +419,7 @@ typedef void (*uv_shutdown_cb)(uv_shutdown_t *, int);
 typedef void (*uv_write_cb)(uv_write_t *, int);
 
 __BEGIN_DECLS
+int uv_accept(uv_stream_t *, uv_stream_t *);
 int uv_is_readable(const uv_stream_t *);
 int uv_is_writable(const uv_stream_t *);
 int uv_read_start(uv_stream_t *, uv_alloc_cb, uv_read_cb);
@@ -427,6 +429,8 @@ int uv_stream_set_blocking(uv_stream_t *, int);
 int uv_try_write(uv_stream_t *, const uv_buf_t *, unsigned int);
 int uv_write(uv_write_t *, uv_stream_t *, const uv_buf_t *, unsigned int,
              uv_write_cb);
+int uv_write2(uv_write_t *, uv_stream_t *, const uv_buf_t *, unsigned int,
+              uv_stream_t *, uv_write_cb);
 __END_DECLS
 
 //
@@ -453,6 +457,8 @@ typedef struct {
 __BEGIN_DECLS
 int uv_pipe_init(uv_loop_t *, uv_pipe_t *, int);
 int uv_pipe_open(uv_pipe_t *, uv_file);
+int uv_pipe_pending_count(uv_pipe_t *);
+uv_handle_type uv_pipe_pending_type(uv_pipe_t *);
 __END_DECLS
 
 //
